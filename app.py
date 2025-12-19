@@ -158,7 +158,9 @@ HTML_TEMPLATE = """
         }
         .preview-section { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); }
         .preview-section h3 { font-size: 0.9rem; color: #a1a1aa; margin-bottom: 1rem; }
-        .preview-image { width: 100%; border-radius: 0.75rem; margin-top: 1rem; }
+        .preview-image { width: 100%; border-radius: 0.75rem; margin-top: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        .preview-image:hover { opacity: 0.9; }
+        .image-hint { font-size: 0.7rem; color: #52525b; margin-top: 0.5rem; text-align: center; font-style: italic; }
         .settings-row { display: flex; gap: 1rem; margin-top: 1rem; }
         .setting { flex: 1; }
         .setting label { display: block; font-size: 0.75rem; color: #71717a; margin-bottom: 0.25rem; }
@@ -173,6 +175,47 @@ HTML_TEMPLATE = """
         }
         .setting input:focus { outline: none; border-color: #f97316; }
         .edit-hint { font-size: 0.7rem; color: #52525b; margin-top: 0.25rem; font-style: italic; }
+        
+        /* Lightbox Modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 0.5rem;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .lightbox-close:hover { opacity: 1; }
+        .lightbox-hint {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -249,6 +292,13 @@ HTML_TEMPLATE = """
         <footer class="footer">
             Powered by Ollama + Stable Diffusion WebUI - Running on your GPU
         </footer>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightboxImg" src="" alt="Full size image">
+        <span class="lightbox-hint">Click anywhere to close</span>
     </div>
 
     <script>
@@ -330,7 +380,9 @@ HTML_TEMPLATE = """
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
 
-                preview.innerHTML = '<img src="data:image/png;base64,' + data.image + '" class="preview-image">';
+                const imgSrc = 'data:image/png;base64,' + data.image;
+                preview.innerHTML = '<img src="' + imgSrc + '" class="preview-image" onclick="openLightbox(this.src)">' +
+                                   '<p class="image-hint">Click image for full size</p>';
 
             } catch (err) {
                 preview.innerHTML = '<p style="text-align:center;color:#f87171;padding:2rem;">Error: ' + err.message + '</p>';
@@ -348,6 +400,21 @@ HTML_TEMPLATE = """
                 setTimeout(() => btn.textContent = 'Copy', 2000);
             });
         }
+
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
     </script>
 </body>
 </html>
