@@ -15,6 +15,7 @@ CORS(app)
 
 OLLAMA_URL = "http://localhost:11434"
 SD_URL = "http://localhost:7860"
+MODEL = "gemma2:2b"
 
 SYSTEM_PROMPT = """You are an expert Stable Diffusion prompt engineer. Transform simple ideas into detailed, effective prompts.
 
@@ -80,26 +81,6 @@ HTML_TEMPLATE = """
             padding: 1.5rem;
             margin-bottom: 1rem;
         }
-        .model-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-        .model-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            color: #e4e4e7;
-        }
-        .model-btn:hover { border-color: rgba(249, 115, 22, 0.5); }
-        .model-btn.active { border-color: #f97316; background: rgba(249, 115, 22, 0.1); }
-        .model-btn .name { font-weight: 600; font-size: 0.9rem; }
-        .model-btn .meta { font-size: 0.75rem; color: #71717a; margin-top: 0.25rem; }
         textarea {
             width: 100%;
             background: rgba(0, 0, 0, 0.3);
@@ -202,22 +183,6 @@ HTML_TEMPLATE = """
         </header>
 
         <div class="card">
-            <label style="font-size: 0.75rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Model</label>
-            <div class="model-selector" style="margin-top: 0.5rem;">
-                <button class="model-btn active" data-model="gemma2:2b">
-                    <div class="name">Gemma2 2B</div>
-                    <div class="meta">1.6GB - Fast</div>
-                </button>
-                <button class="model-btn" data-model="llama3.1:8b">
-                    <div class="name">Llama 3.1 8B</div>
-                    <div class="meta">4.9GB - Better</div>
-                </button>
-                <button class="model-btn" data-model="qwen2.5:14b">
-                    <div class="name">Qwen 2.5 14B</div>
-                    <div class="meta">9GB - Best</div>
-                </button>
-            </div>
-
             <textarea id="idea" placeholder="Enter a simple idea... e.g. 'a wizard in a library' or 'cyberpunk city'"></textarea>
             
             <div class="btn-row">
@@ -287,16 +252,6 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
-        let selectedModel = 'gemma2:2b';
-
-        document.querySelectorAll('.model-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                selectedModel = btn.dataset.model;
-            });
-        });
-
         document.getElementById('expandBtn').addEventListener('click', expandPrompt);
         document.getElementById('idea').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) expandPrompt();
@@ -314,7 +269,7 @@ HTML_TEMPLATE = """
             btn.innerHTML = '<span class="spinner"></span>Thinking...';
             status.style.display = 'block';
             status.className = 'status';
-            status.textContent = 'Generating prompt with ' + selectedModel + '...';
+            status.textContent = 'Expanding prompt...';
             results.style.display = 'none';
 
             try {
@@ -322,7 +277,7 @@ HTML_TEMPLATE = """
                 const response = await fetch('/api/expand', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idea, model: selectedModel })
+                    body: JSON.stringify({ idea })
                 });
 
                 const data = await response.json();
@@ -406,13 +361,12 @@ def index():
 def expand_prompt():
     data = request.json
     idea = data.get('idea', '')
-    model = data.get('model', 'gemma2:2b')
 
     try:
         response = requests.post(
             f"{OLLAMA_URL}/api/generate",
             json={
-                "model": model,
+                "model": MODEL,
                 "prompt": f"{SYSTEM_PROMPT}\n\nTransform this idea: \"{idea}\"",
                 "stream": False
             },
@@ -474,8 +428,8 @@ if __name__ == '__main__':
     print("\n" + "="*50)
     print("  SD Prompt Expander")
     print("="*50)
-    print(f"  Ollama API: {OLLAMA_URL}")
-    print(f"  SD WebUI:   {SD_URL}")
+    print(f"  Ollama:   {OLLAMA_URL} ({MODEL})")
+    print(f"  SD WebUI: {SD_URL}")
     print("="*50)
     print("\n  Open in browser: http://localhost:8085\n")
     app.run(host='0.0.0.0', port=8085, debug=False)
