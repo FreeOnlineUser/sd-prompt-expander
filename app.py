@@ -114,6 +114,20 @@ HTML_TEMPLATE = """
         }
         textarea:focus { outline: none; border-color: #f97316; }
         textarea::placeholder { color: #52525b; }
+        .result-textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: #d4d4d8;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        .result-textarea:focus { outline: none; border-color: #f97316; background: rgba(0, 0, 0, 0.3); }
         .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
         .btn {
             flex: 1;
@@ -177,6 +191,7 @@ HTML_TEMPLATE = """
             font-size: 0.9rem;
         }
         .setting input:focus { outline: none; border-color: #f97316; }
+        .edit-hint { font-size: 0.7rem; color: #52525b; margin-top: 0.25rem; font-style: italic; }
     </style>
 </head>
 <body>
@@ -218,7 +233,8 @@ HTML_TEMPLATE = """
                         <span class="result-label positive">Positive Prompt</span>
                         <button class="copy-btn" onclick="copyText('positive')">Copy</button>
                     </div>
-                    <p class="result-text" id="positive"></p>
+                    <textarea class="result-textarea" id="positive" rows="3"></textarea>
+                    <p class="edit-hint">Click to edit before generating</p>
                 </div>
 
                 <div class="result-card">
@@ -226,7 +242,7 @@ HTML_TEMPLATE = """
                         <span class="result-label negative">Negative Prompt</span>
                         <button class="copy-btn" onclick="copyText('negative')">Copy</button>
                     </div>
-                    <p class="result-text" id="negative"></p>
+                    <textarea class="result-textarea" id="negative" rows="2"></textarea>
                 </div>
 
                 <div class="result-card">
@@ -272,7 +288,6 @@ HTML_TEMPLATE = """
 
     <script>
         let selectedModel = 'gemma2:2b';
-        let currentPrompts = { prompt: '', negative: '' };
 
         document.querySelectorAll('.model-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -315,9 +330,8 @@ HTML_TEMPLATE = """
 
                 if (data.error) throw new Error(data.error);
 
-                currentPrompts = { prompt: data.prompt, negative: data.negative };
-                document.getElementById('positive').textContent = data.prompt;
-                document.getElementById('negative').textContent = data.negative;
+                document.getElementById('positive').value = data.prompt;
+                document.getElementById('negative').value = data.negative;
                 document.getElementById('tip').textContent = data.tip || '';
                 document.getElementById('responseTime').textContent = 'Generated in ' + elapsed + 's';
 
@@ -349,8 +363,8 @@ HTML_TEMPLATE = """
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        prompt: currentPrompts.prompt,
-                        negative_prompt: currentPrompts.negative,
+                        prompt: document.getElementById('positive').value,
+                        negative_prompt: document.getElementById('negative').value,
                         width: parseInt(document.getElementById('width').value),
                         height: parseInt(document.getElementById('height').value),
                         steps: parseInt(document.getElementById('steps').value),
@@ -372,7 +386,7 @@ HTML_TEMPLATE = """
         }
 
         function copyText(id) {
-            const text = document.getElementById(id).textContent;
+            const text = document.getElementById(id).value;
             navigator.clipboard.writeText(text).then(() => {
                 const btn = event.target;
                 btn.textContent = 'Copied!';
