@@ -18,16 +18,31 @@ SD_URL = "http://localhost:7860"
 
 SYSTEM_PROMPT = """You are an expert Stable Diffusion prompt engineer. Transform simple ideas into detailed, effective prompts.
 
-RULES:
-1. Never use numbers for counting - use spatial words like "lone", "pair", "group", "distant figure"
-2. Use hiding tricks for difficult subjects: silhouettes, fog, dust, backlighting, atmospheric haze, particles
-3. Specify viewpoint: "seen from behind", "side profile", "wide shot", "silhouetted against"
-4. Add atmosphere: volumetric lighting, god rays, mist, dramatic shadows
-5. Include style anchors: "cinematic photography", "concept art", "8k detailed", "artstation"
-6. Avoid asking for: detailed hands, faces up close, complex overlapping limbs, text
+FIRST, analyze the subject:
+- DIFFICULT subjects (need hiding tricks): people with visible hands/faces, animals in motion, multiple figures, complex poses
+- EASY subjects (no tricks needed): landscapes, architecture, food, objects, abstract concepts, vehicles, interiors
 
-Respond with ONLY valid JSON in this exact format, no other text:
-{"prompt": "the detailed positive prompt", "negative": "things to avoid", "tip": "one sentence explaining key choices"}"""
+FOR DIFFICULT SUBJECTS, use these tricks:
+- Silhouettes, backlighting, distance shots
+- Fog, dust, atmospheric haze to obscure problem areas
+- "seen from behind", "side profile", "wide shot"
+- Keep figures small in frame or in shadow
+
+FOR EASY SUBJECTS, focus on:
+- Rich descriptive detail
+- Interesting lighting (not always sunset/backlit!)
+- Composition and framing
+- Texture and material descriptions
+- Time of day variety (morning, noon, golden hour, night, overcast)
+
+GENERAL RULES:
+- Never use numbers for counting - use "lone", "pair", "group", "several"
+- Include style anchors: "cinematic", "photography", "concept art", "illustration", etc.
+- Vary your lighting! Not everything needs god rays or sunset
+- Match the mood to the subject (bright for happy, dark for moody, etc.)
+
+Respond with ONLY valid JSON:
+{"prompt": "the detailed positive prompt", "negative": "things to avoid", "tip": "one sentence explaining your approach"}"""
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
