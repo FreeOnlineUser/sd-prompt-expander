@@ -15,7 +15,7 @@ CORS(app)
 
 OLLAMA_URL = "http://localhost:11434"
 SD_URL = "http://localhost:7860"
-MODEL = "gemma2:2b"
+MODEL = "llama3.2:3b"
 
 SYSTEM_PROMPT = """You are an expert Stable Diffusion prompt engineer. Transform simple ideas into detailed, effective prompts.
 
